@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Resources:
+  MyEC2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: "ami-0230bd60aa48260c6"  # Specify the AMI ID for your desired Amazon Machine Image
+      InstanceType: "t2.micro"
+      KeyName: "cfkeypair"  # Specify the key pair for SSH access
+
+  SSHSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security Group for SSH"
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: 22
+          ToPort: 22
+          CidrIp: "0.0.0.0/0"
+      VpcId: "vpc-f4608f89"  # Specify your VPC ID
+
+  HTTPSecurityGroup:
+    Type: "AWS::EC2::SecurityGroup"
+    Properties:
+      GroupDescription: "Security Group for HTTP"
+      SecurityGroupIngress:
+        - IpProtocol: "tcp"
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+      VpcId: "vpc-f4608f89"  # Specify your VPC ID
+
+  MyEBSVolume:
+    Type: "AWS::EC2::Volume"
+    Properties:
+      Size: 20
+      AvailabilityZone: !GetAtt MyEC2Instance.AvailabilityZone  # Attaching volume to the same availability zone as the EC2 instance
+      Tags:
+        - Key: "Name"
+          Value: "MyEBSVolume"
+
+  MyVolumeAttachment:
+    Type: "AWS::EC2::VolumeAttachment"
+    Properties:
+      InstanceId: !Ref MyEC2Instance
+      VolumeId: !Ref MyEBSVolume
+      Device: "/dev/sdf"
